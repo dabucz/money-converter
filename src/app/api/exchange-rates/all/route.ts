@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const apiBaseUrl = "https://v6.exchangerate-api.com/v6/";
-const apiKey = "3faf8e08ddcc608be60a073b";
+const apiKey = process.env.API_KEY;
 
 export async function GET() {
     try {
