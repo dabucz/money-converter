@@ -180,7 +180,7 @@ export default function Home() {
     const [amount, setAmount] = useState('1');
     const [result, setResult] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
-    const [rates, setRates] = useState<{[key: string]: number} | null>(null);
+    const [rates, setRates] = useState<{ [key: string]: number } | null>(null);
 
     // Fetch all exchange rates once on component mount
     useEffect(() => {
@@ -209,7 +209,7 @@ export default function Home() {
         // Calculate cross-rate conversion
         const fromRate = rates[fromCurrency];
         const toRate = rates[toCurrency];
-        
+
         if (fromRate && toRate) {
             // First convert to USD, then to target currency
             const amountInUSD = parseFloat(amount) / fromRate;
@@ -228,65 +228,74 @@ export default function Home() {
         }
         return null;
     };
+    const CurrencyChangerInput = () => {
+        return (
+            <select
+                value={fromCurrency}
+                onChange={(e) => setFromCurrency(e.target.value)}
+                className="p-2 w-full text-right outline-none cursor-pointer"
+                disabled={loading}
+            >
+                {currencies.map(currency => (
+                    <option key={currency.code} value={currency.code}>
+                        {currency.name}
+                    </option>
+                ))}
+            </select>
+        );
+    };
 
+    const CurrencyChangerOutput = () => {
+        return (
+            <select
+                value={toCurrency}
+                onChange={(e) => setToCurrency(e.target.value)}
+                className="p-2 w-full text-right outline-none cursor-pointer"
+                disabled={loading}
+            >
+                {currencies.map(currency => (
+                    <option key={currency.code} value={currency.code}>
+                        {currency.name}
+                    </option>
+                ))}
+            </select>
+        );
+    };
+    // shitty ahh code
     return (
-        <div className="min-h-screen p-8 flex flex-col items-center justify-center">
-            <h1 className="text-2xl font-bold mb-8">Currency Converter</h1>
-
-            <div className="space-y-4 w-full max-w-md">
-                <div className="flex flex-col gap-2">
+        <div className="h-screen overflow-hidden bg-[#212121] text-white flex flex-col items-center justify-center gap-4">
+            <div className="text-sm text-gray-400 mt-2">
+                            Exchange Rate: 1 {fromCurrency} = {getCurrentExchangeRate()} {toCurrency}
+                        </div>
+            <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
+                <div className="w-1/3">
                     <input
                         type="number"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="Amount"
-                        className="p-2 border rounded"
+                        className="p-2 w-full text-left outline-none"
                     />
-
-                    <select
-                        value={fromCurrency}
-                        onChange={(e) => setFromCurrency(e.target.value)}
-                        className="p-2 border rounded"
-                        disabled={loading}
-                    >
-                        {currencies.map(currency => (
-                            <option key={currency.code} value={currency.code}>
-                                {currency.name}
-                            </option>
-                        ))}
-                    </select>
-
-                    <select
-                        value={toCurrency}
-                        onChange={(e) => setToCurrency(e.target.value)}
-                        className="p-2 border rounded"
-                        disabled={loading}
-                    >
-                        {currencies.map(currency => (
-                            <option key={currency.code} value={currency.code}>
-                                {currency.name}
-                            </option>
-                        ))}
-                    </select>
                 </div>
-
-                {loading && (
-                    <div className="text-center text-gray-500">
-                        Loading exchange rates...
-                    </div>
-                )}
-
-                {!loading && getCurrentExchangeRate() && (
-                    <div className="text-sm text-gray-500 text-center">
-                        1 {fromCurrency} = {getCurrentExchangeRate()} {toCurrency}
-                    </div>
-                )}
-
-                {result !== null && (
-                    <div className="mt-4 text-lg text-center font-bold">
-                        {amount} {fromCurrency} = {result.toFixed(2)} {toCurrency}
-                    </div>
-                )}
+                <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
+                <div className="w-2/3">
+                    <CurrencyChangerInput />
+                </div>
+            </div>
+            <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
+                <div className="w-1/3 flex text-left">
+                    {loading ? (
+                        <div className="text-center mt-4">Loading...</div>
+                    ) : result !== null ? (
+                        <div className="p-2 w-full text-left outline-none">
+                                {result.toFixed(2)}
+                        </div>
+                    ) : null}
+                </div>
+                <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
+                <div className="w-2/3">
+                    <CurrencyChangerOutput />
+                </div>
             </div>
         </div>
     );
