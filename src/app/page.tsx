@@ -274,7 +274,7 @@ export default function Home() {
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="Amount"
-                        className="p-2 w-full text-left outline-none"
+                        className="p-2 w-full text-left outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                 </div>
                 <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
