@@ -228,20 +228,27 @@ export default function Home() {
         }
         return null;
     };
-    const CurrencyChangerInput = () => {
+
+    const CurrencySelector = ({ value, onChange, disabled }: { 
+        value: string, 
+        onChange: (code: string) => void,
+        disabled: boolean 
+    }) => {
         return (
-            <select
-                value={fromCurrency}
-                onChange={(e) => setFromCurrency(e.target.value)}
-                className="p-2 w-full text-right outline-none cursor-pointer"
-                disabled={loading}
-            >
-                {currencies.map(currency => (
-                    <option key={currency.code} value={currency.code}>
-                        {currency.name}
-                    </option>
-                ))}
-            </select>
+            <div className="relative">
+                <select
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    className="p-2 w-full text-right outline-none cursor-pointer bg-transparent"
+                    disabled={disabled}
+                >
+                    {currencies.map(currency => (
+                        <option key={currency.code}>
+                            {currency.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
         );
     };
 
@@ -265,8 +272,8 @@ export default function Home() {
     return (
         <div className="h-screen overflow-hidden bg-[#212121] text-white flex flex-col items-center justify-center gap-4">
             <div className="text-sm text-gray-400 mt-2">
-                            Exchange Rate: 1 {fromCurrency} = {getCurrentExchangeRate()} {toCurrency}
-                        </div>
+                Exchange Rate: 1 {fromCurrency} = {getCurrentExchangeRate()} {toCurrency}
+            </div>
             <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
                 <div className="w-1/3">
                     <input
@@ -274,12 +281,16 @@ export default function Home() {
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="Amount"
-                        className="p-2 w-full text-left outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="p-2 w-full text-left outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                 </div>
                 <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
                 <div className="w-2/3">
-                    <CurrencyChangerInput />
+                    <CurrencySelector 
+                        value={fromCurrency} 
+                        onChange={setFromCurrency}
+                        disabled={loading}
+                    />
                 </div>
             </div>
             <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
@@ -288,13 +299,17 @@ export default function Home() {
                         <div className="text-center mt-4">Loading...</div>
                     ) : result !== null ? (
                         <div className="p-2 w-full text-left outline-none">
-                                {result.toFixed(2)}
+                            {result.toFixed(2)}
                         </div>
                     ) : null}
                 </div>
                 <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
                 <div className="w-2/3">
-                    <CurrencyChangerOutput />
+                    <CurrencySelector 
+                        value={toCurrency} 
+                        onChange={setToCurrency}
+                        disabled={loading}
+                    />
                 </div>
             </div>
         </div>
