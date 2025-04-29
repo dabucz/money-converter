@@ -189,6 +189,7 @@ export default function Home() {
                 const response = await fetch('/api/exchange-rates/all');
                 const data: ExchangeRateData = await response.json();
                 setRates(data.conversion_rates);
+                console.log(data.conversion_rates)
             } catch (error) {
                 console.error('Error fetching exchange rates:', error);
             } finally {
@@ -243,29 +244,12 @@ export default function Home() {
                     disabled={disabled}
                 >
                     {currencies.map(currency => (
-                        <option key={currency.code}>
+                        <option key={currency.code} value={currency.code}>
                             {currency.name}
                         </option>
                     ))}
                 </select>
             </div>
-        );
-    };
-
-    const CurrencyChangerOutput = () => {
-        return (
-            <select
-                value={toCurrency}
-                onChange={(e) => setToCurrency(e.target.value)}
-                className="p-2 w-full text-right outline-none cursor-pointer"
-                disabled={loading}
-            >
-                {currencies.map(currency => (
-                    <option key={currency.code} value={currency.code}>
-                        {currency.name}
-                    </option>
-                ))}
-            </select>
         );
     };
     // shitty ahh code
