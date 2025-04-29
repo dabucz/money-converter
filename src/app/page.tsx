@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from "next/image";
+import { MdSwapVert } from "react-icons/md";
 
 interface ExchangeRateData {
     conversion_rates: {
@@ -189,7 +189,6 @@ export default function Home() {
                 const response = await fetch('/api/exchange-rates/all');
                 const data: ExchangeRateData = await response.json();
                 setRates(data.conversion_rates);
-                console.log(data.conversion_rates)
             } catch (error) {
                 console.error('Error fetching exchange rates:', error);
             } finally {
@@ -230,10 +229,10 @@ export default function Home() {
         return null;
     };
 
-    const CurrencySelector = ({ value, onChange, disabled }: { 
-        value: string, 
+    const CurrencySelector = ({ value, onChange, disabled }: {
+        value: string,
         onChange: (code: string) => void,
-        disabled: boolean 
+        disabled: boolean
     }) => {
         return (
             <div className="relative">
@@ -252,48 +251,67 @@ export default function Home() {
             </div>
         );
     };
-    // shitty ahh code
+
+    const handleSwap = () => {
+        const tempAmount = amount;
+        const tempResult = result;
+        setFromCurrency(toCurrency);
+        setToCurrency(fromCurrency);
+        setAmount(tempResult?.toFixed(2) ?? '');
+        setResult(tempAmount ? parseFloat(tempAmount) : null);
+    };
+
     return (
         <div className="h-screen overflow-hidden bg-[#212121] text-white flex flex-col items-center justify-center gap-4">
             <div className="text-sm text-gray-400 mt-2">
                 Exchange Rate: 1 {fromCurrency} = {getCurrentExchangeRate()} {toCurrency}
             </div>
-            <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
-                <div className="w-1/3">
-                    <input
-                        type="number"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        placeholder="Amount"
-                        className="p-2 w-full text-left outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
+            <div className="flex flex-row gap-4">
+                <div 
+                    className="px-2 flex flex-row justify-center items-center text-3xl bg-[#2d2d2d] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 cursor-pointer"
+                    onClick={handleSwap}
+                >
+                    <MdSwapVert />
                 </div>
-                <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
-                <div className="w-2/3">
-                    <CurrencySelector 
-                        value={fromCurrency} 
-                        onChange={setFromCurrency}
-                        disabled={loading}
-                    />
-                </div>
-            </div>
-            <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
-                <div className="w-1/3 flex text-left">
-                    {loading ? (
-                        <div className="text-center mt-4">Loading...</div>
-                    ) : result !== null ? (
-                        <div className="p-2 w-full text-left outline-none">
-                            {result.toFixed(2)}
+                <div className="flex flex-col gap-4">
+                    <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
+                        <div className="w-1/3">
+                            <input
+                                type="number"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="Amount"
+                                className="p-2 w-full text-left outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
                         </div>
-                    ) : null}
-                </div>
-                <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
-                <div className="w-2/3">
-                    <CurrencySelector 
-                        value={toCurrency} 
-                        onChange={setToCurrency}
-                        disabled={loading}
-                    />
+                        <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
+                        <div className="w-2/3">
+                            <CurrencySelector
+                                value={fromCurrency}
+                                onChange={setFromCurrency}
+                                disabled={loading}
+                            />
+                        </div>
+                    </div>
+                    <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
+                        <div className="w-1/3 flex text-left">
+                            {loading ? (
+                                <div className="text-center mt-4">Loading...</div>
+                            ) : result !== null ? (
+                                <div className="p-2 w-full text-left outline-none">
+                                    {result.toFixed(2)}
+                                </div>
+                            ) : null}
+                        </div>
+                        <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
+                        <div className="w-2/3">
+                            <CurrencySelector
+                                value={toCurrency}
+                                onChange={setToCurrency}
+                                disabled={loading}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
