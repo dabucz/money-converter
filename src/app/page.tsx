@@ -206,7 +206,6 @@ export default function Home() {
             return;
         }
 
-        // Calculate cross-rate conversion
         const fromRate = rates[fromCurrency];
         const toRate = rates[toCurrency];
 
@@ -260,7 +259,7 @@ export default function Home() {
         setAmount(tempResult?.toFixed(2) ?? '');
         setResult(tempAmount ? parseFloat(tempAmount) : null);
     };
-
+    // shitty ahh code
     return (
         <div className="h-screen overflow-hidden bg-[#212121] text-white flex flex-col items-center justify-center gap-4">
             <div className="text-sm text-gray-400 mt-2">
