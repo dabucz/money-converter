@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MdSwapVert, MdSave } from "react-icons/md";
+import { MdSwapVert, MdSave, MdDelete } from "react-icons/md";
 
 interface ExchangeRateData {
     conversion_rates: {
@@ -184,6 +184,24 @@ const currencies = [
     { code: 'ZWL', name: 'Zimbabwean Dollar' }
 ];
 
+// Cookie helper functions
+const setCookie = (name: string, value: string, days: number = 30) => {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+};
+
+const getCookie = (name: string): string | null => {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+};
+
 export default function Home() {
     const [fromCurrency, setFromCurrency] = useState('USD');
     const [toCurrency, setToCurrency] = useState('EUR');
@@ -192,6 +210,31 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [rates, setRates] = useState<{ [key: string]: number } | null>(null);
     const [history, setHistory] = useState<ConversionHistory[]>([]);
+
+    // Load history from cookies on component mount
+    useEffect(() => {
+        const savedHistory = getCookie('conversionHistory');
+        if (savedHistory) {
+            try {
+                const parsedHistory = JSON.parse(savedHistory);
+                // Convert timestamp strings back to Date objects
+                const historyWithDates = parsedHistory.map((item: any) => ({
+                    ...item,
+                    timestamp: new Date(item.timestamp)
+                }));
+                setHistory(historyWithDates);
+            } catch (error) {
+                console.error('Error loading history from cookies:', error);
+            }
+        }
+    }, []);
+
+    // Save history to cookies whenever history changes
+    useEffect(() => {
+        if (history.length > 0) {
+            setCookie('conversionHistory', JSON.stringify(history));
+        }
+    }, [history]);
 
     // Fetch all exchange rates only once
     useEffect(() => {
@@ -289,18 +332,28 @@ export default function Home() {
         setHistory(prev => [newConversion, ...prev]);
     };
 
-    // shitty ahh code
+    const handleDelete = (id: string) => {
+        setHistory(prev => {
+            const newHistory = prev.filter(item => item.id !== id);
+            if (newHistory.length === 0) {
+                // Clear cookies if no history left
+                setCookie('conversionHistory', '', -1);
+            }
+            return newHistory;
+        });
+    };
+
     return (
-        <div className="h-screen overflow-hidden bg-[#212121] text-white flex flex-col items-center justify-center gap-4">
-            <div className="flex flex-row w-full max-w-7xl justify-between items-start gap-8">
-                {/* Left Column - Empty for now */}
-                <div className="w-[350px]">
+        <div className="min-h-screen text-white flex flex-col items-center justify-center p-4">
+            <div className="flex flex-col lg:flex-row w-full max-w-7xl justify-between items-start gap-8">
+                {/* Left Column - Empty for now (hidden on mobile) */}
+                <div className="w-[350px] hidden lg:block">
                     {/* Future content can go here */}
                 </div>
 
                 {/* Middle Column - Main Converter */}
-                <div className="flex flex-col items-center gap-4">
-                    <div className="text-sm text-gray-400 mt-2">
+                <div className="flex flex-col items-center gap-4 w-full lg:w-auto">
+                    <div className="text-sm text-gray-400 mt-2 text-center">
                         Exchange Rate: 1 {fromCurrency} = {getCurrentExchangeRate()} {toCurrency}
                     </div>
                     <div className="flex flex-row gap-4">
@@ -312,7 +365,7 @@ export default function Home() {
                         </div>
                         
                         <div className="flex flex-col gap-4">
-                            <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
+                            <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-full sm:w-[400px]">
                                 <div className="w-1/3">
                                     <input
                                         type="number"
@@ -331,7 +384,7 @@ export default function Home() {
                                     />
                                 </div>
                             </div>
-                            <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
+                            <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-full sm:w-[400px]">
                                 <div className="w-1/3 flex text-left">
                                     {loading ? (
                                         <div className="text-center mt-4">Loading...</div>
@@ -355,7 +408,7 @@ export default function Home() {
                 </div>
 
                 {/* Right Column - History Panel */}
-                <div className="bg-[#2d2d2d] rounded-[10px] border border-[#3f3f3f] w-[350px] h-[500px] flex flex-col">
+                <div className="bg-[#2d2d2d] rounded-[10px] border border-[#3f3f3f] w-full lg:w-[350px] h-[500px] flex flex-col">
                     <div className="p-4 border-b border-[#3f3f3f]">
                         <div className="flex justify-between items-center">
                             <div>
@@ -381,9 +434,16 @@ export default function Home() {
                                 {history.map((conversion) => (
                                     <div key={conversion.id} className="mb-3 p-3 bg-[#1f1f1f] rounded-lg border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200">
                                         <div className="flex justify-between items-start mb-2">
-                                            <div className="text-sm font-medium text-white">
+                                            <div className="text-sm font-medium text-white flex-1">
                                                 {conversion.amount} {conversion.fromCurrency} → {conversion.result.toFixed(2)} {conversion.toCurrency}
                                             </div>
+                                            <button
+                                                onClick={() => handleDelete(conversion.id)}
+                                                className="ml-2 p-1 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded transition duration-200 cursor-pointer"
+                                                title="Delete conversion"
+                                            >
+                                                <MdDelete size={16} />
+                                            </button>
                                         </div>
                                         <div className="text-xs text-gray-400 mb-1">
                                             Rate: 1 {conversion.fromCurrency} = {conversion.rate} {conversion.toCurrency}
