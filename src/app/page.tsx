@@ -182,7 +182,7 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [rates, setRates] = useState<{ [key: string]: number } | null>(null);
 
-    // Fetch all exchange rates once on component mount
+    // Fetch all exchange rates only once
     useEffect(() => {
         const fetchAllRates = async () => {
             try {
@@ -199,7 +199,6 @@ export default function Home() {
         fetchAllRates();
     }, []);
 
-    // Calculate conversion whenever amount, fromCurrency, or toCurrency changes
     useEffect(() => {
         if (!rates || !amount) {
             setResult(null);
