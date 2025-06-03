@@ -1,13 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MdSwapVert } from "react-icons/md";
+import { MdSwapVert, MdSave } from "react-icons/md";
 
 interface ExchangeRateData {
     conversion_rates: {
         [key: string]: number;
     };
     base_code: string;
+}
+
+interface ConversionHistory {
+    id: string;
+    amount: string;
+    fromCurrency: string;
+    toCurrency: string;
+    result: number;
+    rate: string;
+    timestamp: Date;
 }
 
 const currencies = [
@@ -181,6 +191,7 @@ export default function Home() {
     const [result, setResult] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [rates, setRates] = useState<{ [key: string]: number } | null>(null);
+    const [history, setHistory] = useState<ConversionHistory[]>([]);
 
     // Fetch all exchange rates once on component mount
     useEffect(() => {
@@ -259,57 +270,132 @@ export default function Home() {
         setAmount(tempResult?.toFixed(2) ?? '');
         setResult(tempAmount ? parseFloat(tempAmount) : null);
     };
+
+    const handleSave = () => {
+        if (!result || !amount || !rates) return;
+        
+        const currentRate = getCurrentExchangeRate();
+        if (!currentRate) return;
+
+        const newConversion: ConversionHistory = {
+            id: Date.now().toString(),
+            amount,
+            fromCurrency,
+            toCurrency,
+            result,
+            rate: currentRate,
+            timestamp: new Date()
+        };
+
+        setHistory(prev => [newConversion, ...prev]);
+    };
+
     // shitty ahh code
     return (
         <div className="h-screen overflow-hidden bg-[#212121] text-white flex flex-col items-center justify-center gap-4">
-            <div className="text-sm text-gray-400 mt-2">
-                Exchange Rate: 1 {fromCurrency} = {getCurrentExchangeRate()} {toCurrency}
-            </div>
-            <div className="flex flex-row gap-4">
-                <div 
-                    className="px-2 flex flex-row justify-center items-center text-3xl bg-[#2d2d2d] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 cursor-pointer"
-                    onClick={handleSwap}
-                >
-                    <MdSwapVert />
+            <div className="flex flex-row w-full max-w-7xl justify-between items-start gap-8">
+                {/* Left Column - Empty for now */}
+                <div className="w-[350px]">
+                    {/* Future content can go here */}
                 </div>
-                <div className="flex flex-col gap-4">
-                    <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
-                        <div className="w-1/3">
-                            <input
-                                type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                placeholder="Amount"
-                                className="p-2 w-full text-left outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
+
+                {/* Middle Column - Main Converter */}
+                <div className="flex flex-col items-center gap-4">
+                    <div className="text-sm text-gray-400 mt-2">
+                        Exchange Rate: 1 {fromCurrency} = {getCurrentExchangeRate()} {toCurrency}
+                    </div>
+                    <div className="flex flex-row gap-4">
+                        <div 
+                            className="px-2 flex flex-row justify-center items-center text-3xl bg-[#2d2d2d] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 cursor-pointer"
+                            onClick={handleSwap}
+                        >
+                            <MdSwapVert />
                         </div>
-                        <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
-                        <div className="w-2/3">
-                            <CurrencySelector
-                                value={fromCurrency}
-                                onChange={setFromCurrency}
-                                disabled={loading}
-                            />
+                        
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
+                                <div className="w-1/3">
+                                    <input
+                                        type="number"
+                                        value={amount}
+                                        onChange={(e) => setAmount(e.target.value)}
+                                        placeholder="Amount"
+                                        className="p-2 w-full text-left outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
+                                </div>
+                                <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
+                                <div className="w-2/3">
+                                    <CurrencySelector
+                                        value={fromCurrency}
+                                        onChange={setFromCurrency}
+                                        disabled={loading}
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
+                                <div className="w-1/3 flex text-left">
+                                    {loading ? (
+                                        <div className="text-center mt-4">Loading...</div>
+                                    ) : result !== null ? (
+                                        <div className="p-2 w-full text-left outline-none">
+                                            {result.toFixed(2)}
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
+                                <div className="w-2/3">
+                                    <CurrencySelector
+                                        value={toCurrency}
+                                        onChange={setToCurrency}
+                                        disabled={loading}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="flex flex-row bg-[#2d2d2d] px-[15px] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 w-[400px]">
-                        <div className="w-1/3 flex text-left">
-                            {loading ? (
-                                <div className="text-center mt-4">Loading...</div>
-                            ) : result !== null ? (
-                                <div className="p-2 w-full text-left outline-none">
-                                    {result.toFixed(2)}
-                                </div>
-                            ) : null}
+                </div>
+
+                {/* Right Column - History Panel */}
+                <div className="bg-[#2d2d2d] rounded-[10px] border border-[#3f3f3f] w-[350px] h-[500px] flex flex-col">
+                    <div className="p-4 border-b border-[#3f3f3f]">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h3 className="text-lg font-semibold text-white">Conversion History</h3>
+                                <p className="text-sm text-gray-400">{history.length} saved conversions</p>
+                            </div>
+                            <div 
+                                className="gap-2 flex flex-row justify-center items-center px-4 py-2 bg-[#2d2d2d] rounded-[10px] border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={handleSave}
+                                style={{ opacity: (!result || !amount) ? 0.5 : 1, cursor: (!result || !amount) ? 'not-allowed' : 'pointer' }}
+                            >
+                                <MdSave />Save
+                            </div>
                         </div>
-                        <div className="h-1/2 w-[1px] bg-[#3f3f3f] my-auto"></div>
-                        <div className="w-2/3">
-                            <CurrencySelector
-                                value={toCurrency}
-                                onChange={setToCurrency}
-                                disabled={loading}
-                            />
-                        </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                        {history.length === 0 ? (
+                            <div className="flex items-center justify-center h-full text-gray-500">
+                                <p>No conversions saved yet</p>
+                            </div>
+                        ) : (
+                            <div className="p-2">
+                                {history.map((conversion) => (
+                                    <div key={conversion.id} className="mb-3 p-3 bg-[#1f1f1f] rounded-lg border border-[#3f3f3f] hover:border-[#6e6e6e] transition duration-200">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="text-sm font-medium text-white">
+                                                {conversion.amount} {conversion.fromCurrency} → {conversion.result.toFixed(2)} {conversion.toCurrency}
+                                            </div>
+                                        </div>
+                                        <div className="text-xs text-gray-400 mb-1">
+                                            Rate: 1 {conversion.fromCurrency} = {conversion.rate} {conversion.toCurrency}
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                            {`${conversion.timestamp.getDate().toString().padStart(2, '0')}.${(conversion.timestamp.getMonth() + 1).toString().padStart(2, '0')}.${conversion.timestamp.getFullYear()} ${conversion.timestamp.getHours().toString().padStart(2, '0')}:${conversion.timestamp.getMinutes().toString().padStart(2, '0')}`}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
